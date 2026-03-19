@@ -56,17 +56,17 @@ export const GridHeader: React.FC<GridHeaderProps> = ({
   sortDirection = null,
 }) => {
   return (
-    <thead className="bg-gray-100">
-      <tr>
+    <thead className="bg-gray-100 sticky top-0 z-10">
+      <tr className="text-xs lg:text-sm">
         {showCheckbox && (
-          <th className="px-4 py-3 text-left w-12">
+          <th className="px-2 lg:px-4 py-2 lg:py-3 text-left w-10 lg:w-12">
             <input type="checkbox" className="rounded border-gray-300" aria-label="Select all" />
           </th>
         )}
         {columns.map((col) => (
           <th
             key={col.id}
-            className={`px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wider ${
+            className={`px-2 lg:px-4 py-2 lg:py-3 text-xs lg:text-xs font-medium text-gray-600 uppercase tracking-wider ${
               col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
             }`}
           >

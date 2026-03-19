@@ -33,7 +33,7 @@ export const StatusFilterBuckets: React.FC<StatusFilterBucketsProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`flex flex-wrap gap-2 ${className}`}>
+    <div className={`flex flex-wrap gap-1 lg:gap-2 ${className}`}>
       {buckets.map((bucket) => {
         const isActive = activeKey === bucket.key;
         return (
@@ -42,7 +42,7 @@ export const StatusFilterBuckets: React.FC<StatusFilterBucketsProps> = ({
             type="button"
             onClick={() => onSelect(isActive ? null : bucket.key)}
             className={`
-              px-4 py-2 rounded-lg text-sm font-medium transition
+              px-2.5 lg:px-4 py-1.5 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition whitespace-nowrap
               ${isActive
                 ? `${bucket.filledClass} text-white border-transparent`
                 : variant === 'outline'

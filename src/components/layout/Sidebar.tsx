@@ -4,23 +4,23 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../hooks/useAppHooks';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const menuItems = [
   { path: '/dashboard', label: 'Dashboard', icon: GridIcon },
   { path: '/project', label: 'Project', icon: GridIcon },
-  { path: '/sales', label: 'Sales', icon: ChartIcon, hasSubmenu: false },
   {
     path: '/inventory', label: 'Inventory', icon: BoxIcon, hasSubmenu: true, children: [
-      { path: '/inventory/products', label: 'Products' },
-      { path: '/inventory/vendors', label: 'Vendors' },
+      { path: '/products', label: 'Products' },
+      { path: '/vendors', label: 'Vendors' },
     ],
   },
   {
     path: '/masters', label: 'Masters', icon: UsersIcon, hasSubmenu: true, children: [
-      { path: '/masters/addons', label: 'Add-Ons' },
+      { path: '/addons', label: 'Add-Ons' },
     ],
   },
+  { path: '/quotes', label: 'Quotes', icon: ChartIcon },
 ];
 
 function GridIcon({ className }: { className?: string }) {
@@ -68,6 +68,13 @@ export const Sidebar: React.FC = () => {
   const sidebarOpen = useAppSelector((state) => state.ui.sidebarOpen);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
+  // Auto-expand Inventory menu when navigating to inventory-related paths
+  useEffect(() => {
+    if (location.pathname.startsWith('/inventory') || location.pathname.startsWith('/products') || location.pathname.startsWith('/vendors')) {
+      setExpandedItems((prev) => ({ ...prev, '/inventory': true }));
+    }
+  }, [location.pathname]);
+
   const toggleExpand = (path: string) => {
     setExpandedItems((prev) => ({ ...prev, [path]: !prev[path] }));
   };
@@ -75,8 +82,8 @@ export const Sidebar: React.FC = () => {
   if (!sidebarOpen) return null;
 
   return (
-    <aside className="w-56 bg-white border-r border-gray-200 flex-shrink-0 min-h-screen">
-      <nav className="p-4 space-y-1">
+    <aside className="w-full lg:w-56 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 shrink-0 lg:min-h-screen overflow-y-auto lg:overflow-y-auto max-h-96 lg:max-h-none">
+      <nav className="p-3 lg:p-4 space-y-1">
         <Link to="/dashboard" className="flex items-center gap-2 py-2">
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
             <span className="text-white font-bold text-sm">S</span>
@@ -97,13 +104,13 @@ export const Sidebar: React.FC = () => {
                 className={`
                   flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition
                   ${isActive
-                    ? '!bg-blue-600 !text-white'
-                    : '!text-gray-600 !hover:bg-gray-100'
+                    ? 'bg-blue-600! text-white!'
+                    : 'text-gray-600! hover:bg-gray-100!'
                   }
                 `}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <Icon className="w-5 h-5 shrink-0" />
                   <span>{item.label}</span>
                 </div>
                 {item.hasSubmenu && (

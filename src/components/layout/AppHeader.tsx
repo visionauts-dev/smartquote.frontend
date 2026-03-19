@@ -11,7 +11,6 @@ import { useState } from 'react';
 const breadcrumbMap: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/project': 'Project',
-  '/sales': 'Sales',
   '/inventory': 'Inventory',
   '/masters': 'Masters',
   '/quotes': 'Quotes',
@@ -47,42 +46,48 @@ export const AppHeader: React.FC = () => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 h-14 flex-shrink-0 flex items-center justify-between px-4">
+    <header className="bg-white border-b border-gray-200 h-12 lg:h-14 shrink-0 flex items-center justify-between px-2 lg:px-4 gap-2 lg:gap-4">
       {/* Left: Logo + Hamburger */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 lg:gap-3\">
         <button
           type="button"
           onClick={() => dispatch(toggleSidebar())}
-          className="p-2 rounded-lg bg-blue-600 text-white transition"
+          className="lg:hidden p-1.5 lg:p-2 rounded-lg bg-blue-600 text-white transition"
           aria-label="Toggle sidebar"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </div>
 
       {/* Right: Icons + User */}
-      <div className="flex items-center gap-4">
-        <div className="relative">
+      <div className="flex items-center gap-2 lg:gap-4 ml-auto\">
+        <div className="relative\">
           <button
             type="button"
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            <div className="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center text-white text-xs font-medium">
-              {user?.firstName?.[0] ?? user?.email?.[0] ?? '?'}
+            className="flex items-center gap-1.5 lg:gap-2 p-1 lg:p-2 rounded-lg hover:bg-gray-100 transition\">
+            <div className="w-5 h-5 lg:w-6 lg:h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0\">
+              {user?.fullName
+                ? user.fullName
+                    .split(' ')
+                    .slice(0, 2)
+                    .map((n: string) => n[0])
+                    .join('')
+                    .toUpperCase()
+                : user?.email?.[0]?.toUpperCase() ?? '?'}
             </div>
-            <span className="text-xs font-medium text-gray-900 hidden sm:inline">
-              {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email ?? 'User'}
+            <span className="text-xs lg:text-xs font-medium text-gray-900 hidden sm:inline whitespace-nowrap\">
+              {user?.fullName ?? user?.email ?? 'User'}
             </span>
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0  w-48 bg-white rounded-lg shadow-lg border border-gray-200  z-50">
+            <div className="absolute right-0 w-40 lg:w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 top-full mt-1\">
               <Link
                 to="/settings"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="block px-3 lg:px-4 py-2 text-xs lg:text-sm text-gray-700 hover:bg-gray-50\"
                 onClick={() => setDropdownOpen(false)}
               >
                 Account Settings
@@ -90,7 +95,7 @@ export const AppHeader: React.FC = () => {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium"
+                className="block w-full text-left px-3 lg:px-4 py-2 text-xs lg:text-sm text-red-600 hover:bg-red-50 font-medium\"
               >
                 Sign Out
               </button>
@@ -98,9 +103,9 @@ export const AppHeader: React.FC = () => {
           )}
         </div>
 
-        <nav className="hidden md:flex items-center gap-1 text-sm text-gray-500">
+        <nav className="hidden lg:flex items-center gap-1 text-xs lg:text-sm text-gray-500\">
           {breadcrumbs.map((crumb, i) => (
-            <span key={i} className="flex items-center gap-1">
+            <span key={i} className="flex items-center gap-1 whitespace-nowrap\">
               {i > 0 && <span>/</span>}
               <span className={i === breadcrumbs.length - 1 ? 'text-gray-900 font-medium' : ''}>
                 {crumb}

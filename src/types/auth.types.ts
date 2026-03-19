@@ -7,8 +7,11 @@ export interface User {
   email: string;
   firstName?: string;
   lastName?: string;
-  organizationId?: number;
+  organizationId?: string;
   roles?: string[];
+  fullName?: string;
+  role?: string;
+  userId?: string;
 }
 
 export interface LoginRequest {
@@ -25,8 +28,12 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   token: string;
-  user: User;
-  isAuthenticated: boolean;
+  userId?: string;
+  fullName?: string;
+  role?: string;
+  organizationId?: string;
+  user?: User;
+  isAuthenticated?: boolean;
 }
 
 export interface AuthState {

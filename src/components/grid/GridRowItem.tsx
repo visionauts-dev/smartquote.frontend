@@ -75,9 +75,9 @@ export const GridRowItem: React.FC<GridRowItemProps> = ({
   const displayColumns = columnOrder.filter((c) => c !== actionColumnId);
 
   return (
-    <tr className="hover:bg-gray-50 border-b border-gray-200 last:border-b-0" data-row-id={id}>
+    <tr className="hover:bg-gray-50 border-b border-gray-200 last:border-b-0 text-xs lg:text-sm" data-row-id={id}>
       {showCheckbox && (
-        <td className="px-4 py-3">
+        <td className="px-2 lg:px-4 py-2 lg:py-3">
           <input type="checkbox" className="rounded border-gray-300" aria-label={`Select row ${id}`} />
         </td>
       )}
@@ -85,7 +85,7 @@ export const GridRowItem: React.FC<GridRowItemProps> = ({
         const isFirst = index === 0;
         const cell = cells[colId];
         const content = colId === 'status' && status ? (
-          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${statusVariantClasses[status.variant] ?? 'bg-gray-100 text-gray-800'}`}>
+          <span className={`inline-flex px-1.5 lg:px-2.5 py-0.5 rounded-full text-xs font-medium ${statusVariantClasses[status.variant] ?? 'bg-gray-100 text-gray-800'}`}>
             {status.label}
           </span>
         ) : (
@@ -93,7 +93,7 @@ export const GridRowItem: React.FC<GridRowItemProps> = ({
         );
 
         return (
-          <td key={colId} className="px-4 py-3 text-sm text-gray-900">
+          <td key={colId} className="px-2 lg:px-4 py-2 lg:py-3 text-gray-900 whitespace-nowrap lg:whitespace-normal">
             {isFirst && rowLink ? (
               <Link to={rowLink} className="text-blue-600 hover:underline font-medium">
                 {content}
@@ -105,15 +105,15 @@ export const GridRowItem: React.FC<GridRowItemProps> = ({
         );
       })}
       {columnOrder.includes(actionColumnId) && (
-        <td className="px-4 py-3">
-          <div className="flex items-center gap-1">
+        <td className="px-2 lg:px-4 py-2 lg:py-3 sticky right-0 bg-gray-50 hover:bg-gray-100">
+          <div className="flex items-center gap-0.5 lg:gap-1">
             {actions?.map((action) => {
               if (action.type === 'view' && action.href) {
                 return (
                   <Link
                     key="view"
                     to={action.href}
-                    className="p-1.5 rounded-full text-blue-600 hover:bg-blue-50 transition"
+                    className="p-1 lg:p-1.5 rounded-full text-blue-600 hover:bg-blue-50 transition"
                     title="View"
                   >
                     <ViewIcon />
@@ -125,7 +125,7 @@ export const GridRowItem: React.FC<GridRowItemProps> = ({
                   <Link
                     key="edit"
                     to={action.href}
-                    className="p-1.5 rounded-full text-green-600 hover:bg-green-50 transition"
+                    className="p-1 lg:p-1.5 rounded-full text-green-600 hover:bg-green-50 transition"
                     title="Edit"
                   >
                     <EditIcon />
@@ -138,7 +138,7 @@ export const GridRowItem: React.FC<GridRowItemProps> = ({
                     key="delete"
                     type="button"
                     onClick={onDelete ?? action.onClick}
-                    className="p-1.5 rounded-full text-red-600 hover:bg-red-50 transition"
+                    className="p-1 lg:p-1.5 rounded-full text-red-600 hover:bg-red-50 transition"
                     title="Delete"
                   >
                     <DeleteIcon />

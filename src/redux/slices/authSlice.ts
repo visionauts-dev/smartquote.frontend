@@ -7,6 +7,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { type AuthState, type LoginRequest, type RegisterRequest, type AuthResponse } from '../../types/auth.types';
 import { authApi } from '../../services/api/authApi';
 import { setAuthToken, restoreAuthToken } from '../../services/api/apiClient';
+import { getEmailFromToken, decodeToken, extractUserFromToken } from '../../utils/tokenUtils';
 
 const initialState: AuthState = {
   user: null,
@@ -15,6 +16,31 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   success: false,
+};
+
+/**
+ * Extract user data from API response
+ * Handles both direct properties and nested user object
+ */
+const extractUserData = (response: AuthResponse) => {
+  const token = response.token;
+
+  // Try to get email from JWT token claims
+  let email = response.email || getEmailFromToken(token) || '';
+
+  if (response.user) {
+    // If user object exists, use it
+    return response.user;
+  }
+
+  // Otherwise, construct user object from direct properties
+  return {
+    id: response.userId || '',
+    email,
+    fullName: response.fullName || '',
+    role: response.role || '',
+    organizationId: response.organizationId || '',
+  };
 };
 
 // Async thunks
@@ -75,6 +101,15 @@ const authSlice = createSlice({
       if (token) {
         state.token = token;
         state.isAuthenticated = true;
+
+        // Extract user data from token claims
+        const tokenData = extractUserFromToken(token);
+        if (tokenData.id) {
+          state.user = {
+            ...tokenData,
+            fullName: state.user?.fullName || '', // fullName may not be in token, will be updated on API call
+          };
+        }
       }
     },
   },
@@ -88,7 +123,7 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.isLoading = false;
         state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.user = extractUserData(action.payload);
         state.isAuthenticated = true;
         state.success = true;
         state.error = null;
@@ -108,7 +143,7 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.isLoading = false;
         state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.user = extractUserData(action.payload);
         state.isAuthenticated = true;
         state.success = true;
         state.error = null;

@@ -6,11 +6,11 @@
 
 import axios, { type AxiosInstance, AxiosError } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5213';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5254';
 const TOKEN_KEY = 'auth_token';
 
 // In-memory token storage
-let authToken: string | null = null;
+let authToken: string | null = null;  
 
 // Function to set token from Redux
 export const setAuthToken = (token: string | null): void => {

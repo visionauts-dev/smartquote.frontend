@@ -76,14 +76,21 @@ const Navbar: React.FC = () => {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 transition group"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white text-xs font-bold group-hover:shadow-md transition">
-                    {user?.firstName ? user.firstName[0].toUpperCase() : user?.email?.[0].toUpperCase()}
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-bold group-hover:shadow-md transition">
+                    {user?.fullName
+                      ? user.fullName
+                          .split(' ')
+                          .slice(0, 2)
+                          .map((n) => n[0])
+                          .join('')
+                          .toUpperCase()
+                      : user?.email?.[0]?.toUpperCase() ?? '?'}
                   </div>
                   <div className="hidden sm:block text-left">
                     <p className="text-sm font-medium text-gray-900">
-                      {user?.firstName || 'User'}
+                      {user?.fullName || 'User'}
                     </p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
+                    <p className="text-xs text-gray-500">{user?.role || user?.email}</p>
                   </div>
                   <svg
                     className={`w-4 h-4 text-gray-600 transition ${

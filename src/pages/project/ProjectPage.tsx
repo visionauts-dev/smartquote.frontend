@@ -4,16 +4,17 @@
  */
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppHooks';
 import { fetchQuotes } from '../../redux/slices/quotesSlice';
 import { openModal } from '../../redux/slices/uiSlice';
 import { Button } from '../../components/ui/Button';
-import { StatusFilterBuckets } from '../../components/grid/StatusFilterBuckets';
+import { Input } from '../../components/ui/Input';
+import { Modal } from '../../components/ui/Modal';
 import { Grid } from '../../components/grid/Grid';
-import type { StatusBucket } from '../../components/grid/StatusFilterBuckets';
 import type { GridColumn } from '../../components/grid/GridHeader';
 import type { GridRowData } from '../../components/grid/Grid';
+import type { StatusBucket } from '../../components/grid';
 
 export type ProjectStatus = 'quoted' | 'pending' | 'inprogress' | 'cancelled' | 'rejected';
 
@@ -55,7 +56,6 @@ const GRID_COLUMNS: GridColumn[] = [
 
 const COLUMN_ORDER = ['projectId', 'projectName', 'noOfGAs', 'createdDate', 'totalEstimation', 'status', 'action'];
 
-/** Default status buckets for Project page */
 const PROJECT_STATUS_BUCKETS: Omit<StatusBucket, 'count'>[] = [
   { key: 'quoted', label: 'Quoted', outlineClass: 'border-green-500 text-green-600', filledClass: 'bg-green-500' },
   { key: 'pending', label: 'Pending', outlineClass: 'border-amber-500 text-amber-600', filledClass: 'bg-amber-500' },
@@ -65,13 +65,21 @@ const PROJECT_STATUS_BUCKETS: Omit<StatusBucket, 'count'>[] = [
 ];
 
 const ProjectPage: React.FC = () => {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { items } = useAppSelector((state) => state.quotes);
   const [search, setSearch] = useState('');
-  const [activeStatus, setActiveStatus] = useState<ProjectStatus | null>(null);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
+  
+  // Create Project Modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [clientName, setClientName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [enquiryDate, setEnquiryDate] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     dispatch(fetchQuotes());
@@ -91,11 +99,10 @@ const ProjectPage: React.FC = () => {
 
   const filtered = useMemo(() => {
     let list = projects.filter((p) => {
-      const matchStatus = !activeStatus || p.status === activeStatus;
       const matchSearch = !search.trim() ||
         p.projectName.toLowerCase().includes(search.toLowerCase()) ||
         p.projectId.toLowerCase().includes(search.toLowerCase());
-      return matchStatus && matchSearch;
+      return matchSearch;
     });
     if (sortColumn && sortDirection) {
       list = [...list].sort((a, b) => {
@@ -107,19 +114,11 @@ const ProjectPage: React.FC = () => {
       });
     }
     return list;
-  }, [projects, activeStatus, search, sortColumn, sortDirection]);
+  }, [projects, search, sortColumn, sortDirection]);
 
   const visibleRows = useMemo(() => filtered.slice(0, displayCount), [filtered, displayCount]);
   const hasMore = visibleRows.length < filtered.length;
   const loadMore = () => setDisplayCount((c) => Math.min(c + PAGE_SIZE, filtered.length));
-
-  const statusBuckets: StatusBucket[] = useMemo(() =>
-    PROJECT_STATUS_BUCKETS.map((b) => ({
-      ...b,
-      count: projects.filter((p) => p.status === b.key).length,
-    })),
-    [projects]
-  );
 
   const gridRows: GridRowData[] = useMemo(() => visibleRows.map((p) => ({
     id: p.id,
@@ -146,58 +145,72 @@ const ProjectPage: React.FC = () => {
     setSortDirection((d) => (sortColumn === columnId && d === 'asc' ? 'desc' : 'asc'));
   };
 
-  const handleStatusSelect = (key: string | null) => {
-    setActiveStatus(key as ProjectStatus | null);
-    setDisplayCount(PAGE_SIZE);
+  const handleCreateProject = async () => {
+    if (!clientName.trim() || !email.trim() || !phone.trim() || !enquiryDate) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // For now, navigate to quotes/new with the form data
+      // In a real scenario, you would create a quote with this data first
+      navigate('/quotes/new', {
+        state: {
+          clientName,
+          email,
+          phone,
+          enquiryDate,
+        },
+      });
+      setShowCreateModal(false);
+      setClientName('');
+      setEmail('');
+      setPhone('');
+      setEnquiryDate('');
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Failed to create project');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setClientName('');
+    setEmail('');
+    setPhone('');
+    setEnquiryDate('');
+    setShowCreateModal(false);
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-full">
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-        {/* Title */}
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900">Project</h1>
-          <p className="text-gray-500 mt-1">Project</p>
-        </div>
-
-        {/* Action bar */}
-        <div className="p-4 flex flex-wrap items-center gap-4 border-b border-gray-200 bg-gray-50">
-          <div className="flex-1 min-w-[200px] relative">
-            <input
-              type="text"
-              placeholder="Search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+    <div className="h-full flex flex-col gap-2">
+      {/* Search and Filters */}
+      <div className="bg-white rounded-lg border border-gray-200 p-3 shrink-0">
+        <div className="flex gap-3 items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">Projects</span>
+          <div className="flex gap-3 items-center">
+            <div className="w-72">
+              <Input
+                type="text"
+                placeholder="Search by project name or ID..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="whitespace-nowrap px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700"
+            >
+              + Create Project
+            </button>
           </div>
-          <Button variant="outline" size="sm">Filters</Button>
-          <Link to="/quotes/new">
-            <Button size="sm">Create</Button>
-          </Link>
         </div>
+      </div>
 
-        {/* Status filter buckets - outline by default, filters grid on selection */}
-        <div className="p-4 border-b border-gray-200">
-          <StatusFilterBuckets
-            buckets={statusBuckets}
-            activeKey={activeStatus}
-            onSelect={handleStatusSelect}
-            variant="outline"
-          />
-        </div>
-
-        {/* Summary */}
-        <div className="px-6 py-3 bg-gray-50 text-sm text-gray-600 border-b border-gray-200">
-          Total Sub Projects : {projects.reduce((s: number, p: ProjectRow) => s + p.noOfGAs, 0).toLocaleString()}
-          <span className="mx-2">|</span>
-          Total Projects : {projects.length}
-        </div>
-
-        {/* Grid - Generic GridHeader + GridRowItem wrapped in InfiniteScroll */}
+      {/* Grid */}
+      <div className="flex-1 bg-white rounded-lg border border-gray-200 overflow-hidden">
         <Grid
           columns={GRID_COLUMNS}
           rows={gridRows}
@@ -205,13 +218,87 @@ const ProjectPage: React.FC = () => {
           showCheckbox={false}
           hasMore={hasMore}
           loadMore={loadMore}
-          scrollHeight="60vh"
+          scrollHeight="100%"
           sortColumn={sortColumn}
           sortDirection={sortDirection}
           onSort={handleSort}
-          onFilter={() => {}}
+          onFilter={() => { }}
         />
       </div>
+
+      {/* Create Project Modal */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={resetForm}
+        title="Create New Project"
+        size="md"
+      >
+        <div className="space-y-4 p-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Client Name
+            </label>
+            <Input
+              type="text"
+              placeholder="Enter client name"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address
+            </label>
+            <Input
+              type="email"
+              placeholder="Enter email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number
+            </label>
+            <Input
+              type="tel"
+              placeholder="Enter phone number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Enquiry Date
+            </label>
+            <Input
+              type="date"
+              value={enquiryDate}
+              onChange={(e) => setEnquiryDate(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-3 justify-end pt-4 border-t">
+            <Button
+              onClick={resetForm}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateProject}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Creating...' : 'Create Project'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

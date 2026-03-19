@@ -15,7 +15,9 @@ import DashboardGridPage from './pages/dashboard/DashboardGridPage';
 import ProjectPage from './pages/project/ProjectPage';
 import SalesGridPage from './pages/sales/SalesGridPage';
 import InventoryGridPage from './pages/inventory/InventoryGridPage';
+import ProductsGridPage from './pages/inventory/ProductsGridPage';
 import MastersGridPage from './pages/masters/MastersGridPage';
+import VendorsGridPage from './pages/masters/VendorsGridPage';
 import QuotesPage from './pages/quotes/QuotesPage';
 import QuoteCreatePage from './pages/quotes/QuoteCreatePage';
 import QuoteDetailPage from './pages/quotes/QuoteDetailPage';
@@ -78,10 +80,26 @@ function App() {
             }
           />
           <Route
+            path="/products"
+            element={
+              <ProtectedRoute>
+                <ProductsGridPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/masters"
             element={
               <ProtectedRoute>
                 <MastersGridPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendors"
+            element={
+              <ProtectedRoute>
+                <VendorsGridPage />
               </ProtectedRoute>
             }
           />

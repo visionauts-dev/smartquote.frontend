@@ -4,14 +4,15 @@
  */
 
 import apiClient from './apiClient';
-import { type LoginRequest, type RegisterRequest, type AuthResponse } from '../../types/auth.types';
+import { type RegisterRequest, type AuthResponse } from '../../types/auth.types';
+import { type LoginRequestDto, type LoginResponseDto } from '../../types/api.types';
 
 export const authApi = {
   /**
-   * Login user
+   * Login user with email and password
    */
-  login: async (payload: LoginRequest): Promise<AuthResponse> => {
-    const response = await apiClient.post<AuthResponse>('/api/auth/login', payload);
+  login: async (payload: LoginRequestDto): Promise<LoginResponseDto> => {
+    const response = await apiClient.post<LoginResponseDto>('/api/Auth/login', payload);
     return response.data;
   },
 

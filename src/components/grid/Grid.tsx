@@ -24,6 +24,8 @@ export interface GridProps {
   /** Column order (must include all column ids + 'action' if actions shown) */
   columnOrder: string[];
   showCheckbox?: boolean;
+  /** Loading state */
+  isLoading?: boolean;
   /** Infinite scroll: load more when reaching end */
   hasMore?: boolean;
   loadMore?: () => void;
@@ -43,6 +45,7 @@ export const Grid: React.FC<GridProps> = ({
   rows,
   columnOrder,
   showCheckbox = false,
+  isLoading = false,
   hasMore = false,
   loadMore = () => {},
   sortColumn = null,
@@ -55,19 +58,36 @@ export const Grid: React.FC<GridProps> = ({
 
   const tableBody = (
     <tbody className="bg-white divide-y divide-gray-200">
-      {rows.map((row) => (
-        <GridRowItem
-          key={row.id}
-          id={row.id}
-          cells={row.cells}
-          rowLink={row.rowLink}
-          status={row.status}
-          actions={row.actions}
-          onDelete={row.onDelete}
-          columnOrder={columnOrder}
-          showCheckbox={showCheckbox}
-        />
-      ))}
+      {isLoading && rows.length === 0 ? (
+        <tr>
+          <td colSpan={columnOrder.length} className="px-3 lg:px-4 py-6 lg:py-8 text-center text-gray-500">
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-6 lg:h-8 w-6 lg:w-8 border-b-2 border-primary"></div>
+              <span className="ml-1 lg:ml-2 text-xs lg:text-sm">Loading...</span>
+            </div>
+          </td>
+        </tr>
+      ) : rows.length === 0 ? (
+        <tr>
+          <td colSpan={columnOrder.length} className="px-3 lg:px-4 py-6 lg:py-8 text-center text-gray-500 text-xs lg:text-sm">
+            No data available
+          </td>
+        </tr>
+      ) : (
+        rows.map((row) => (
+          <GridRowItem
+            key={row.id}
+            id={row.id}
+            cells={row.cells}
+            rowLink={row.rowLink}
+            status={row.status}
+            actions={row.actions}
+            onDelete={row.onDelete}
+            columnOrder={columnOrder}
+            showCheckbox={showCheckbox}
+          />
+        ))
+      )}
     </tbody>
   );
 
@@ -89,8 +109,7 @@ export const Grid: React.FC<GridProps> = ({
     return (
       <div
         id={SCROLL_CONTAINER_ID}
-        className="overflow-x-auto overflow-y-auto"
-        style={{ maxHeight: scrollHeight }}
+        className="h-full overflow-x-auto overflow-y-auto"
       >
         <InfiniteScrollLib
           dataLength={rows.length}
@@ -105,5 +124,5 @@ export const Grid: React.FC<GridProps> = ({
     );
   }
 
-  return <div className="overflow-x-auto">{tableEl}</div>;
+  return <div className="h-full overflow-x-auto overflow-y-auto">{tableEl}</div>;
 };
