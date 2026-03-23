@@ -48,8 +48,10 @@ export const apiClient: AxiosInstance = axios.create({
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    if (authToken) {
-      config.headers.Authorization = `Bearer ${authToken}`;
+    // Always check for token before each request
+    const token = authToken || localStorage.getItem(TOKEN_KEY);
+    if (token && token.trim()) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -63,8 +65,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
+      console.warn('Unauthorized (401) - clearing auth and redirecting to login');
+      // Clear token
       authToken = null;
+      localStorage.removeItem(TOKEN_KEY);
+      // Redirect to login
       window.location.href = '/login';
     }
     return Promise.reject(error);

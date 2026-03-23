@@ -6,7 +6,9 @@
 export { addonsApi } from './addonsApi';
 export { authApi } from './authApi';
 export { categoriesApi } from './categoriesApi';
+export { gasApi } from './gasApi';
 export { productsApi } from './productsApi';
+export { projectsApi } from './projectsApi';
 export { subcategoriesApi } from './subcategoriesApi';
 export { vendorsApi } from './vendorsApi';
 export { usersApi } from './usersApi';

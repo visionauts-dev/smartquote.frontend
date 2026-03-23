@@ -10,6 +10,8 @@ export interface ModalProps {
   title: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  height?: 'sm' | 'md' | 'lg' | 'xl' | 'auto';
+  maxHeight?: string;
   showCloseButton?: boolean;
 }
 
@@ -20,12 +22,22 @@ const sizeClasses = {
   xl: 'max-w-xl',
 };
 
+const heightClasses = {
+  sm: 'max-h-sm',
+  md: 'max-h-md',
+  lg: 'max-h-lg',
+  xl: 'max-h-xl',
+  auto: 'max-h-none',
+};
+
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   title,
   children,
   size = 'md',
+  height = 'auto',
+  maxHeight,
   showCloseButton = true,
 }) => {
   useEffect(() => {
@@ -53,9 +65,10 @@ export const Modal: React.FC<ModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`relative w-full ${sizeClasses[size]} bg-white rounded-xl shadow-xl`}
+        className={`relative w-full ${sizeClasses[size]} ${heightClasses[height]} bg-white rounded-xl shadow-xl flex flex-col`}
+        style={maxHeight ? { maxHeight } : undefined}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
           <h2 id="modal-title" className="text-lg font-semibold text-gray-900">
             {title}
           </h2>
@@ -72,7 +85,7 @@ export const Modal: React.FC<ModalProps> = ({
             </button>
           )}
         </div>
-        <div className="p-4">{children}</div>
+        <div className="flex-1 overflow-y-auto p-2">{children}</div>
       </div>
     </div>
   );

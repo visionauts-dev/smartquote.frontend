@@ -13,6 +13,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardGridPage from './pages/dashboard/DashboardGridPage';
 import ProjectPage from './pages/project/ProjectPage';
+import ProjectDetailPage from './pages/project/ProjectDetailPage';
 import SalesGridPage from './pages/sales/SalesGridPage';
 import InventoryGridPage from './pages/inventory/InventoryGridPage';
 import ProductsGridPage from './pages/inventory/ProductsGridPage';
@@ -60,6 +61,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProjectPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/project/:projectId"
+            element={
+              <ProtectedRoute>
+                <ProjectDetailPage />
               </ProtectedRoute>
             }
           />

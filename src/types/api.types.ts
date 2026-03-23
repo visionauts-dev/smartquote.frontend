@@ -178,6 +178,55 @@ export interface WeatherForecast {
   summary?: string | null;
 }
 
+// ==================== Project Types ====================
+export interface CreateProjectDto {
+  projectName: string;
+  description: string;
+  clientName: string;
+  clientEmail: string;
+  phoneNumber: string;
+  address: string;
+  enquiryDate: string; // ISO 8601 date format
+}
+
+export interface UpdateProjectDto {
+  projectName: string;
+  description: string;
+  clientName: string;
+  clientEmail: string;
+  phoneNumber: string;
+  address: string;
+  enquiryDate: string;
+}
+
+export interface ProjectDto extends CreateProjectDto {
+  id: number;
+}
+
+// ==================== General Arrangement (GA) Types ====================
+export interface CreateGADto {
+  projectId: number;
+  gaName: string;
+  description: string;
+  quantity: number;
+  estimatedCost: number;
+}
+
+export interface UpdateGADto {
+  gaName: string;
+  description: string;
+  quantity: number;
+  estimatedCost: number;
+}
+
+export interface GADto extends CreateGADto {
+  id: number;
+  totalCost: number;
+  status: 'draft' | 'estimated' | 'approved';
+  createdAt: string;
+  updatedAt?: string;
+}
+
 // ==================== Generic API Response Types ====================
 export interface ApiResponse<T> {
   data: T;

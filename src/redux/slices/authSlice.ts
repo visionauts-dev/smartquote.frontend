@@ -7,7 +7,8 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { type AuthState, type LoginRequest, type RegisterRequest, type AuthResponse } from '../../types/auth.types';
 import { authApi } from '../../services/api/authApi';
 import { setAuthToken, restoreAuthToken } from '../../services/api/apiClient';
-import { getEmailFromToken, decodeToken, extractUserFromToken } from '../../utils/tokenUtils';
+import { getEmailFromToken, extractUserFromToken } from '../../utils/tokenUtils';
+import type { LoginResponseDto } from '../../types/api.types';
 
 const initialState: AuthState = {
   user: null,
@@ -26,7 +27,7 @@ const extractUserData = (response: AuthResponse) => {
   const token = response.token;
 
   // Try to get email from JWT token claims
-  let email = response.email || getEmailFromToken(token) || '';
+  let email = getEmailFromToken(token) || '';
 
   if (response.user) {
     // If user object exists, use it
@@ -49,10 +50,16 @@ export const login = createAsyncThunk(
   async (payload: LoginRequest, { rejectWithValue }) => {
     try {
       const response = await authApi.login(payload);
-      setAuthToken(response.token);
-      return response;
+      if (response && response.token) {
+        setAuthToken(response.token);
+        console.log('Login successful, token set');
+        return response;
+      } else {
+        return rejectWithValue('No token received from server');
+      }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Login failed';
+      console.error('Login error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed';
       return rejectWithValue(errorMessage);
     }
   }
@@ -120,10 +127,17 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(login.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
+      .addCase(login.fulfilled, (state, action: PayloadAction<LoginResponseDto>) => {
         state.isLoading = false;
         state.token = action.payload.token;
-        state.user = extractUserData(action.payload);
+        // Handle the user object from LoginResponseDto
+        if (action.payload.user) {
+          state.user = {
+            id: action.payload.user.id,
+            email: action.payload.user.email,
+            fullName: action.payload.user.fullName,
+          };
+        }
         state.isAuthenticated = true;
         state.success = true;
         state.error = null;
@@ -143,6 +157,9 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action: PayloadAction<AuthResponse>) => {
         state.isLoading = false;
         state.token = action.payload.token;
+        if (action.payload.token) {
+          setAuthToken(action.payload.token);
+        }
         state.user = extractUserData(action.payload);
         state.isAuthenticated = true;
         state.success = true;
