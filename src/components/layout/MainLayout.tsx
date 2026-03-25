@@ -1,5 +1,5 @@
 /**
- * Main App Layout - QUOTE MASTER (sidebar + header + content)
+ * Main App Layout - SmartQuote (sidebar + header + content)
  */
 
 import { Outlet } from 'react-router-dom';
@@ -10,11 +10,11 @@ import { ConfirmDeleteModal } from '../modals/ConfirmDeleteModal';
 
 export const MainLayout: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+    <div style={{ display: 'flex', height: '100vh', width: '100%', overflow: 'hidden', background: '#f1f5f9' }}>
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 h-screen">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
         <AppHeader />
-        <main className="flex-1 overflow-hidden">
+        <main style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
           <Outlet />
         </main>
       </div>

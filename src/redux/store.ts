@@ -7,6 +7,7 @@ import authReducer from './slices/authSlice';
 import quotesReducer from './slices/quotesSlice';
 import templatesReducer from './slices/templatesSlice';
 import uiReducer from './slices/uiSlice';
+import gaReducer from './slices/gaSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     quotes: quotesReducer,
     templates: templatesReducer,
     ui: uiReducer,
+    ga: gaReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

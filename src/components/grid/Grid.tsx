@@ -16,6 +16,7 @@ export interface GridRowData {
   status?: { label: string; variant: 'quoted' | 'pending' | 'inprogress' | 'cancelled' | 'rejected' };
   actions?: GridRowAction[];
   onDelete?: () => void;
+  onDoubleClick?: () => void;
 }
 
 export interface GridProps {
@@ -52,7 +53,6 @@ export const Grid: React.FC<GridProps> = ({
   sortDirection = null,
   onSort,
   onFilter,
-  scrollHeight = '60vh',
 }) => {
   const useInfiniteScroll = hasMore && loadMore;
 
@@ -83,6 +83,7 @@ export const Grid: React.FC<GridProps> = ({
             status={row.status}
             actions={row.actions}
             onDelete={row.onDelete}
+            onDoubleClick={row.onDoubleClick}
             columnOrder={columnOrder}
             showCheckbox={showCheckbox}
           />

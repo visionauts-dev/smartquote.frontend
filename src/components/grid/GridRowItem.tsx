@@ -23,6 +23,7 @@ export interface GridRowItemProps {
   /** Action buttons */
   actions?: GridRowAction[];
   onDelete?: () => void;
+  onDoubleClick?: () => void;
   columnOrder: string[];
   /** Optional checkbox */
   showCheckbox?: boolean;
@@ -68,6 +69,7 @@ export const GridRowItem: React.FC<GridRowItemProps> = ({
   status,
   actions,
   onDelete,
+  onDoubleClick,
   columnOrder,
   showCheckbox = false,
 }) => {
@@ -75,7 +77,11 @@ export const GridRowItem: React.FC<GridRowItemProps> = ({
   const displayColumns = columnOrder.filter((c) => c !== actionColumnId);
 
   return (
-    <tr className="hover:bg-gray-50 border-b border-gray-200 last:border-b-0 text-xs lg:text-sm" data-row-id={id}>
+    <tr 
+      className="hover:bg-gray-50 border-b border-gray-200 last:border-b-0 text-xs lg:text-sm cursor-pointer" 
+      data-row-id={id}
+      onDoubleClick={onDoubleClick}
+    >
       {showCheckbox && (
         <td className="px-2 lg:px-4 py-2 lg:py-3">
           <input type="checkbox" className="rounded border-gray-300" aria-label={`Select row ${id}`} />

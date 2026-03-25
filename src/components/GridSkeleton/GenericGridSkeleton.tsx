@@ -1,4 +1,4 @@
-import type { GenericHeaderConfig } from "../GridHeader";
+import type { GenericHeaderConfig } from "../grid/GridHeader";
 
 interface GenericGridSkeletonProps {
   headers: GenericHeaderConfig[];
@@ -20,7 +20,7 @@ export const GenericGridSkeleton = ({
           {/* Indicator skeleton */}
           {showIndicator && (
             <div
-              className="bg-gray-200 rounded-full animate-pulse flex-shrink-0"
+              className="bg-gray-200 rounded-full animate-pulse shrink-0"
               style={{ width: "8px", height: "8px" }}
             ></div>
           )}
@@ -28,18 +28,18 @@ export const GenericGridSkeleton = ({
           {/* Checkbox skeleton */}
           {showCheckbox && (
             <div
-              className="bg-gray-200 rounded animate-pulse flex-shrink-0"
+              className="bg-gray-200 rounded animate-pulse shrink-0"
               style={{ width: "16px", height: "16px" }}
             ></div>
           )}
 
-          {/* Column skeletons based on headers */}
+          {/* Column skeletons based on headers */
           {headers.map((header, index) => {
             if (header.type === "checkbox") {
               return (
                 <div
                   key={index + "-" + header.field}
-                  className="bg-gray-200 rounded animate-pulse flex-shrink-0"
+                  className="bg-gray-200 rounded animate-pulse shrink-0"
                   style={{ width: "16px", height: "16px" }}
                 ></div>
               );

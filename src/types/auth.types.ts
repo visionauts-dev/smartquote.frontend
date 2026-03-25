@@ -44,9 +44,3 @@ export interface AuthState {
   error: string | null;
   success: boolean;
 }
-
-export interface ApiResponse<T> {
-  data: T;
-  message: string;
-  statusCode: number;
-}

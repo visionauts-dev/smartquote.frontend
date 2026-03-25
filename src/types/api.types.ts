@@ -3,6 +3,8 @@
  * Generated from OpenAPI 3.1.1 specification
  */
 
+import type { QuoteLineItem } from "./quote.types";
+
 // ==================== Addon Types ====================
 export interface CreateAddonDto {
   addonName: string;
@@ -97,6 +99,123 @@ export interface CreateUserDto {
   email: string;
   password: string;
   isActive?: boolean;
+}
+
+// ==================== GA (General Arrangement) Types ====================
+export type GAStatus = 'uploaded' | 'processing' | 'reviewed' | 'product_selected' | 'priced' | 'quoted' | 'completed' | 'failed';
+
+export interface CreateGADto {
+  projectId: number;
+  gaName: string;
+  pdfUrl?: string;
+}
+
+export interface UpdateGADto {
+  gaName?: string;
+  status?: GAStatus;
+}
+
+export interface GADto extends CreateGADto {
+  id: number;
+  projectId: number;
+  status: GAStatus;
+  createdDate: string;
+  updatedDate: string;
+}
+
+// ==================== Detection Types ====================
+export interface DetectionItem {
+  id?: string;
+  category: string;
+  count: number;
+  width?: number;
+  height?: number;
+  depth?: number;
+  unit?: string;
+}
+
+export interface DetectionResult {
+  gaId: number;
+  items: DetectionItem[];
+  detectionScore?: number;
+  processedDate?: string;
+}
+
+export interface SaveDetectionDto {
+  gaId: number;
+  items: DetectionItem[];
+}
+
+// ==================== Product Selection Types ====================
+export interface ProductSelection {
+  detectionItemId?: string;
+  productId: number;
+  count: number;
+  productName?: string;
+  price?: number;
+}
+
+export interface SaveProductSelectionDto {
+  gaId: number;
+  selections: ProductSelection[];
+}
+
+// ==================== Fabrication Types ====================
+export interface FabricationData {
+  detectionItemId?: string;
+  gaId: number;
+  material: string;
+  thickness: number;
+  width?: number;
+  height?: number;
+  depth?: number;
+  weight?: number;
+  materialCost?: number;
+  fabricationCost?: number;
+  totalCost?: number;
+}
+
+export interface SaveFabricationDto {
+  gaId: number;
+  items: FabricationData[];
+}
+
+// ==================== Quote Types ====================
+export interface GAQuoteLineItem {
+  id?: string;
+  productId: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface QuoteData {
+  gaId: number;
+  lineItems: QuoteLineItem[];
+  subtotal: number;
+  discount?: number;
+  tax?: number;
+  grandTotal: number;
+}
+
+export interface SaveQuoteDto {
+  gaId: number;
+  lineItems: QuoteLineItem[];
+  subtotal: number;
+  discount?: number;
+  tax?: number;
+  grandTotal: number;
+}
+
+export interface ExportQuoteDto {
+  gaId: number;
+  format: 'pdf' | 'word' | 'excel';
+}
+
+export interface ExportResponse {
+  url: string;
+  fileName: string;
 }
 
 export interface UpdateUserDto {
@@ -201,30 +320,6 @@ export interface UpdateProjectDto {
 
 export interface ProjectDto extends CreateProjectDto {
   id: number;
-}
-
-// ==================== General Arrangement (GA) Types ====================
-export interface CreateGADto {
-  projectId: number;
-  gaName: string;
-  description: string;
-  quantity: number;
-  estimatedCost: number;
-}
-
-export interface UpdateGADto {
-  gaName: string;
-  description: string;
-  quantity: number;
-  estimatedCost: number;
-}
-
-export interface GADto extends CreateGADto {
-  id: number;
-  totalCost: number;
-  status: 'draft' | 'estimated' | 'approved';
-  createdAt: string;
-  updatedAt?: string;
 }
 
 // ==================== Generic API Response Types ====================

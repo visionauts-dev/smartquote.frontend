@@ -8,22 +8,21 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { projectsApi } from '../../services/api/projectsApi';
 import { gasApi } from '../../services/api/gasApi';
-import { Button } from '../../components/ui/Button';
+import { AddGAModal } from '../../components/ga/AddGAModal';
 import { Input } from '../../components/ui/Input';
-import { Modal } from '../../components/ui/Modal';
 import { Grid } from '../../components/grid/Grid';
 import type { GridColumn } from '../../components/grid/GridHeader';
 import type { GridRowData } from '../../components/grid/Grid';
-import type { ProjectDto, GADto } from '../../types/api.types';
+import type { ProjectDto, GADto, GAStatus } from '../../types/api.types';
 
 export interface GARow {
   id: string;
   gaName: string;
-  description: string;
-  estimatedCost: number;
-  quantity: number;
-  totalCost: number;
-  status: 'draft' | 'estimated' | 'approved';
+  description?: string;
+  estimatedCost?: number;
+  quantity?: number;
+  totalCost?: number;
+  status: GAStatus;
 }
 
 const PAGE_SIZE = 15;
@@ -64,11 +63,6 @@ const ProjectDetailPage: React.FC = () => {
 
   // Add GA Modal state
   const [showAddGAModal, setShowAddGAModal] = useState(false);
-  const [gaName, setGAName] = useState('');
-  const [description, setDescription] = useState('');
-  const [quantity, setQuantity] = useState('1');
-  const [estimatedCost, setEstimatedCost] = useState('');
-  const [isSubmittingGA, setIsSubmittingGA] = useState(false);
 
   // Fetch project details
   const fetchProject = async () => {
@@ -100,10 +94,10 @@ const ProjectDetailPage: React.FC = () => {
       const mappedGAs = response.map((ga: GADto) => ({
         id: ga.id.toString(),
         gaName: ga.gaName,
-        description: ga.description,
-        quantity: ga.quantity,
-        estimatedCost: ga.estimatedCost,
-        totalCost: ga.totalCost,
+        description: '—',
+        quantity: 1,
+        estimatedCost: 0,
+        totalCost: 0,
         status: ga.status,
       })) as GARow[];
       
@@ -128,7 +122,7 @@ const ProjectDetailPage: React.FC = () => {
     let list = gasList.filter((ga) => {
       const matchSearch = !search.trim() ||
         ga.gaName.toLowerCase().includes(search.toLowerCase()) ||
-        ga.description.toLowerCase().includes(search.toLowerCase());
+        (ga.description && ga.description.toLowerCase().includes(search.toLowerCase()));
       return matchSearch;
     });
     if (sortColumn && sortDirection) {
@@ -159,10 +153,10 @@ const ProjectDetailPage: React.FC = () => {
       id: ga.id,
       cells: {
         gaName: ga.gaName,
-        description: ga.description,
-        quantity: ga.quantity.toString(),
-        estimatedCost: formatCurrency(ga.estimatedCost),
-        totalCost: formatCurrency(ga.totalCost),
+        description: ga.description || '—',
+        quantity: ga.quantity?.toString() || '—',
+        estimatedCost: formatCurrency(ga.estimatedCost || 0),
+        totalCost: formatCurrency(ga.totalCost || 0),
         status: null,
       },
       status: { 
@@ -170,9 +164,10 @@ const ProjectDetailPage: React.FC = () => {
         variant: statusVariantMap[ga.status] || 'pending'
       },
       actions: [
-        { type: 'view' },
-        { type: 'edit' },
-        { type: 'delete' },
+        { 
+          type: 'view',
+          onClick: () => navigate(`/project/${projectId}/ga/${ga.id}/workspace`)
+        },
       ],
       onDelete: () => {
         // Handle delete GA
@@ -184,67 +179,6 @@ const ProjectDetailPage: React.FC = () => {
   const handleSort = (columnId: string) => {
     setSortColumn(columnId);
     setSortDirection((d) => (sortColumn === columnId && d === 'asc' ? 'desc' : 'asc'));
-  };
-
-  const handleAddGA = async () => {
-    if (!gaName.trim() || !description.trim() || !estimatedCost.trim()) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    setIsSubmittingGA(true);
-    try {
-      const qty = parseInt(quantity) || 1;
-      const cost = parseFloat(estimatedCost);
-      
-      console.log('Adding GA for project:', projectId);
-      
-      // Call API to save GA
-      const result = await gasApi.create(parseInt(projectId!), {
-        gaName: gaName.trim(),
-        description: description.trim(),
-        quantity: qty,
-        estimatedCost: cost,
-      });
-
-      console.log('GA created successfully:', result);
-      
-      // Add to local state
-      const newGA: GARow = {
-        id: result.id.toString(),
-        gaName: result.gaName,
-        description: result.description,
-        quantity: result.quantity,
-        estimatedCost: result.estimatedCost,
-        totalCost: result.totalCost,
-        status: result.status,
-      };
-      
-      setGAsData([...gasData, newGA]);
-      
-      // Reset form and close modal
-      setShowAddGAModal(false);
-      setGAName('');
-      setDescription('');
-      setQuantity('1');
-      setEstimatedCost('');
-      
-      alert('GA added successfully!');
-    } catch (error: any) {
-      console.error('Error adding GA:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to add GA';
-      alert(`Error: ${errorMessage}`);
-    } finally {
-      setIsSubmittingGA(false);
-    }
-  };
-
-  const resetGAForm = () => {
-    setGAName('');
-    setDescription('');
-    setQuantity('1');
-    setEstimatedCost('');
-    setShowAddGAModal(false);
   };
 
   return (
@@ -352,99 +286,16 @@ const ProjectDetailPage: React.FC = () => {
         )}
       </div>
 
-      {/* Add GA Modal */}
-      <Modal
+      {/* Add GA Modal - PDF Upload */}
+      <AddGAModal
         isOpen={showAddGAModal}
-        onClose={resetGAForm}
-        title="Add General Arrangement (GA)"
-        size="lg"
-      >
-        <div className="space-y-4 p-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              GA Name <span className="text-red-500">*</span>
-            </label>
-            <Input
-              type="text"
-              placeholder="Enter GA name (e.g., Standard Package)"
-              value={gaName}
-              onChange={(e) => setGAName(e.target.value)}
-              disabled={isSubmittingGA}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description <span className="text-red-500">*</span>
-            </label>
-            <Input
-              type="text"
-              placeholder="Enter description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={isSubmittingGA}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity
-              </label>
-              <Input
-                type="number"
-                placeholder="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                min="1"
-                disabled={isSubmittingGA}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Estimated Cost <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="number"
-                placeholder="0.00"
-                value={estimatedCost}
-                onChange={(e) => setEstimatedCost(e.target.value)}
-                step="0.01"
-                min="0"
-                disabled={isSubmittingGA}
-              />
-            </div>
-          </div>
-
-          {estimatedCost && quantity && (
-            <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
-              <div className="text-gray-700">
-                Total Cost: <span className="font-semibold text-blue-700">
-                  ${formatCurrency(parseFloat(estimatedCost) * (parseInt(quantity) || 1))}
-                </span>
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-3 justify-end pt-4 border-t">
-            <Button
-              onClick={resetGAForm}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
-              disabled={isSubmittingGA}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddGA}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-              disabled={isSubmittingGA}
-            >
-              {isSubmittingGA ? 'Adding...' : 'Add GA'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        onClose={() => setShowAddGAModal(false)}
+        projectId={parseInt(projectId!)}
+        onGACreated={() => {
+          // Refresh the GA list after creation
+          fetchGAs();
+        }}
+      />
     </div>
   );
 };

@@ -1,11 +1,10 @@
 /**
- * General Arrangements (GAs) API Service
- * Handles all GA-related API calls including detection, product selection, fabrication, and quotes
+ * GA (General Arrangement) API Service
+ * Handles all GA-related API operations
  */
 
 import apiClient from './apiClient';
 import type {
-  CreateGADto,
   UpdateGADto,
   GADto,
   DetectionResult,
@@ -16,30 +15,14 @@ import type {
   ExportResponse,
 } from '../../types/api.types';
 
-const GA_BASE_URL = '/api/ga';
+const BASE_URL = '/api/ga';
 const DETECTION_URL = '/api/detection';
 
-export const gasApi = {
+export const gaApi = {
   /**
-   * Get all GAs for a project
+   * Create a new GA (upload PDF)
    */
-  getByProjectId: async (projectId: number): Promise<GADto[]> => {
-    const response = await apiClient.get<GADto[]>(`/api/Projects/${projectId}/GAs`);
-    return response.data;
-  },
-
-  /**
-   * Get GA by ID
-   */
-  getById: async (projectId: number, gaId: number): Promise<GADto> => {
-    const response = await apiClient.get<GADto>(`/api/Projects/${projectId}/GAs/${gaId}`);
-    return response.data;
-  },
-
-  /**
-   * Create new GA via file upload
-   */
-  uploadGA: async (projectId: number, file: File, gaName: string): Promise<GADto> => {
+  create: async (projectId: number, file: File, gaName: string): Promise<GADto> => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('projectId', projectId.toString());
@@ -54,29 +37,34 @@ export const gasApi = {
   },
 
   /**
-   * Create new GA (basic without file upload)
+   * Get all GAs for a project
    */
-  create: async (projectId: number, payload: Omit<CreateGADto, 'projectId'>): Promise<GADto> => {
-    const response = await apiClient.post<GADto>(`/api/Projects/${projectId}/GAs`, {
-      projectId,
-      ...payload,
-    });
+  getByProject: async (projectId: number): Promise<GADto[]> => {
+    const response = await apiClient.get<GADto[]>(`${BASE_URL}/project/${projectId}`);
     return response.data;
   },
 
   /**
-   * Update GA
+   * Get a single GA by ID
    */
-  update: async (projectId: number, gaId: number, payload: UpdateGADto): Promise<GADto> => {
-    const response = await apiClient.put<GADto>(`/api/Projects/${projectId}/GAs/${gaId}`, payload);
+  getById: async (gaId: number): Promise<GADto> => {
+    const response = await apiClient.get<GADto>(`${BASE_URL}/${gaId}`);
     return response.data;
   },
 
   /**
-   * Delete GA
+   * Update GA details
    */
-  delete: async (projectId: number, gaId: number): Promise<void> => {
-    await apiClient.delete(`/api/Projects/${projectId}/GAs/${gaId}`);
+  update: async (gaId: number, data: UpdateGADto): Promise<GADto> => {
+    const response = await apiClient.put<GADto>(`${BASE_URL}/${gaId}`, data);
+    return response.data;
+  },
+
+  /**
+   * Delete a GA
+   */
+  delete: async (gaId: number): Promise<void> => {
+    await apiClient.delete(`${BASE_URL}/${gaId}`);
   },
 
   /**
@@ -107,7 +95,7 @@ export const gasApi = {
    * Save product selections
    */
   saveProductSelection: async (data: SaveProductSelectionDto): Promise<any> => {
-    const response = await apiClient.post(`${GA_BASE_URL}/product-selection`, data);
+    const response = await apiClient.post(`${BASE_URL}/product-selection`, data);
     return response.data;
   },
 
@@ -115,7 +103,7 @@ export const gasApi = {
    * Save fabrication data
    */
   saveFabrication: async (data: SaveFabricationDto): Promise<any> => {
-    const response = await apiClient.post(`${GA_BASE_URL}/fabrication`, data);
+    const response = await apiClient.post(`${BASE_URL}/fabrication`, data);
     return response.data;
   },
 
@@ -123,7 +111,7 @@ export const gasApi = {
    * Save quote data
    */
   saveQuote: async (data: SaveQuoteDto): Promise<any> => {
-    const response = await apiClient.post(`${GA_BASE_URL}/quote`, data);
+    const response = await apiClient.post(`${BASE_URL}/quote`, data);
     return response.data;
   },
 
@@ -131,7 +119,7 @@ export const gasApi = {
    * Export quote in various formats
    */
   exportQuote: async (gaId: number, format: 'pdf' | 'word' | 'excel'): Promise<ExportResponse> => {
-    const response = await apiClient.post<ExportResponse>(`${GA_BASE_URL}/export`, {
+    const response = await apiClient.post<ExportResponse>(`${BASE_URL}/export`, {
       gaId,
       format,
     });

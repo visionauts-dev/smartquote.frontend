@@ -8,15 +8,18 @@ import { useAppDispatch } from './hooks/useAppHooks';
 import { initializeAuth } from './redux/slices/authSlice';
 
 // Pages
-import HomePage from './pages/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
-import DashboardGridPage from './pages/dashboard/DashboardGridPage';
+// TODO: Uncomment when dashboard is ready
+// import DashboardGridPage from './pages/dashboard/DashboardGridPage';
 import ProjectPage from './pages/project/ProjectPage';
 import ProjectDetailPage from './pages/project/ProjectDetailPage';
+import GAWorkspacePage from './pages/ga/GAWorkspacePage';
 import SalesGridPage from './pages/sales/SalesGridPage';
 import InventoryGridPage from './pages/inventory/InventoryGridPage';
 import ProductsGridPage from './pages/inventory/ProductsGridPage';
+import ProductCreatePage from './pages/inventory/ProductCreatePage';
+import ProductEditPage from './pages/inventory/ProductEditPage';
 import MastersGridPage from './pages/masters/MastersGridPage';
 import VendorsGridPage from './pages/masters/VendorsGridPage';
 import QuotesPage from './pages/quotes/QuotesPage';
@@ -42,20 +45,20 @@ function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected Routes */}
         <Route element={<MainLayout />}>
-          <Route
+          {/* TODO: Uncomment when dashboard is ready */}
+          {/* <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
                 <DashboardGridPage />
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/project"
             element={
@@ -69,6 +72,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProjectDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/project/:projectId/ga/:gaId/workspace"
+            element={
+              <ProtectedRoute>
+                <GAWorkspacePage />
               </ProtectedRoute>
             }
           />
@@ -93,6 +104,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProductsGridPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/create"
+            element={
+              <ProtectedRoute>
+                <ProductCreatePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products/:id/edit"
+            element={
+              <ProtectedRoute>
+                <ProductEditPage />
               </ProtectedRoute>
             }
           />

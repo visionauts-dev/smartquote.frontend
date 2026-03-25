@@ -26,7 +26,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:shadow-lg transition">
+            <div className="w-10 h-10 bg-linear-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:shadow-lg transition">
               SQ
             </div>
             <span className="text-xl font-bold text-gray-900 group-hover:text-primary transition">Smart Quote</span>
@@ -35,7 +35,8 @@ const Navbar: React.FC = () => {
           {/* Center Navigation */}
           {isAuthenticated && (
             <div className="hidden md:flex items-center gap-8">
-              <Link
+              {/* TODO: Uncomment when dashboard is ready */}
+              {/* <Link
                 to="/dashboard"
                 className={`text-sm font-medium transition ${
                   location.pathname === '/dashboard'
@@ -44,7 +45,7 @@ const Navbar: React.FC = () => {
                 }`}
               >
                 Dashboard
-              </Link>
+              </Link> */}
               <Link
                 to="/quotes"
                 className={`text-sm font-medium transition ${
@@ -76,12 +77,12 @@ const Navbar: React.FC = () => {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-100 transition group"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-bold group-hover:shadow-md transition">
+                  <div className="w-8 h-8 bg-linear-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-bold group-hover:shadow-md transition">
                     {user?.fullName
                       ? user.fullName
                           .split(' ')
                           .slice(0, 2)
-                          .map((n) => n[0])
+                          .map((n: any) => n[0])
                           .join('')
                           .toUpperCase()
                       : user?.email?.[0]?.toUpperCase() ?? '?'}
@@ -149,7 +150,7 @@ const Navbar: React.FC = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white text-sm font-semibold rounded-lg hover:shadow-md transition"
+                  className="px-4 py-2 bg-linear-to-r from-primary to-secondary text-white text-sm font-semibold rounded-lg hover:shadow-md transition"
                 >
                   Get Started
                 </Link>

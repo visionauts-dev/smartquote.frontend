@@ -3,90 +3,109 @@
  * Display all products in a table with filtering, sorting, and CRUD operations
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Grid, type GridRowData, type GridProps } from '../../components/grid/Grid';
-import { Badge } from '../../components/ui/Badge';
 import type { ProductDto } from '../../types/api.types';
 import { productsApi } from '../../services/api/productsApi';
-import { Modal } from '../../components/ui/Modal';
-import ProductForm from '../../components/products/ProductForm';
-
-interface ODataQuery {
-  $filter?: string;
-  $orderby?: string;
-  $skip?: number;
-  $top?: number;
-}
+import { AttributesDisplay } from '../../components/products/AttributesDisplay';
 
 const ProductsGridPage: React.FC = () => {
-  const [products, setProducts] = useState<ProductDto[]>([]);
+  const navigate = useNavigate();
+  const [allProducts, setAllProducts] = useState<ProductDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
-  const [skip, setSkip] = useState(0);
-  const [take] = useState(20);
-  const [editingProduct, setEditingProduct] = useState<ProductDto | null>(null);
-  const [showModal, setShowModal] = useState(false);
 
-  // Fetch products with OData support
-  const fetchProducts = useCallback(
-    async (query: ODataQuery = {}) => {
+  // Fetch all products once
+  useEffect(() => {
+    const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const params: ODataQuery = {
-          $skip: query.$skip || skip,
-          $top: query.$top || take,
-          ...query,
-        };
-
-        if (searchTerm) {
-          params.$filter = `contains(vendor,'${searchTerm}') or contains(category,'${searchTerm}') or contains(subcategory,'${searchTerm}') or contains(vendorCatNo,'${searchTerm}')`;
-        }
-
-        if (sortColumn) {
-          const direction = sortDirection === 'desc' ? 'desc' : 'asc';
-          params.$orderby = `${sortColumn} ${direction}`;
-        }
-
-        const response = await productsApi.getAll();
-        setProducts(response);
+        const data = await productsApi.getAll();
+        setAllProducts(data);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
         setIsLoading(false);
       }
-    },
-    [skip, take, searchTerm, sortColumn, sortDirection]
-  );
-
-  useEffect(() => {
+    };
     fetchProducts();
-  }, [fetchProducts]);
+  }, []);
 
-  // Handle sort
+  // Client-side search + sort
+  const products = useMemo(() => {
+    let result = [...allProducts];
+
+    // Search: filter across key text fields
+    if (searchTerm.trim()) {
+      const term = searchTerm.trim().toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.vendor?.toLowerCase().includes(term) ||
+          p.category?.toLowerCase().includes(term) ||
+          p.subcategory?.toLowerCase().includes(term) ||
+          p.vendorCatNo?.toLowerCase().includes(term) ||
+          p.model?.toLowerCase().includes(term)
+      );
+    }
+
+    // Sort
+    if (sortColumn && sortDirection) {
+      result.sort((a, b) => {
+        let aVal: any = (a as any)[sortColumn] ?? '';
+        let bVal: any = (b as any)[sortColumn] ?? '';
+
+        // Numeric sort for mrp
+        if (sortColumn === 'mrp') {
+          aVal = Number(aVal);
+          bVal = Number(bVal);
+          return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+
+        // String sort
+        aVal = String(aVal).toLowerCase();
+        bVal = String(bVal).toLowerCase();
+        if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return result;
+  }, [allProducts, searchTerm, sortColumn, sortDirection]);
+
+  // Handle sort: asc → desc → none
   const handleSort = (columnId: string) => {
     if (sortColumn === columnId) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : null);
-      setSortColumn(null);
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else {
+        setSortColumn(null);
+        setSortDirection(null);
+      }
     } else {
       setSortColumn(columnId);
       setSortDirection('asc');
     }
   };
 
-  // Handle search
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setSkip(0);
+  // Handle create - navigate to create page
+  const handleCreate = () => {
+    navigate('/products/create');
   };
 
-  // Handle edit
+  // Handle edit - navigate to edit page with product data
   const handleEdit = (product: ProductDto) => {
-    setEditingProduct(product);
-    setShowModal(true);
+    navigate(`/products/${product.id}/edit`, { state: { product } });
+  };
+
+  // Handle double-click on row - same as edit
+  const handleRowDoubleClick = (product: ProductDto) => {
+    navigate(`/products/${product.id}/edit`, { state: { product } });
   };
 
   // Handle delete
@@ -94,24 +113,10 @@ const ProductsGridPage: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         await productsApi.delete(id);
-        setProducts(products.filter((p) => p.id !== id));
+        setAllProducts((prev) => prev.filter((p) => p.id !== id));
       } catch (error) {
         console.error('Error deleting product:', error);
       }
-    }
-  };
-
-  // Handle form submit
-  const handleFormSubmit = async (formData: any) => {
-    try {
-      if (editingProduct) {
-        await productsApi.update(editingProduct.id, formData);
-      }
-      setShowModal(false);
-      setEditingProduct(null);
-      await fetchProducts();
-    } catch (error) {
-      console.error('Error saving product:', error);
     }
   };
 
@@ -121,8 +126,8 @@ const ProductsGridPage: React.FC = () => {
     { id: 'category', label: 'Category', sortable: true },
     { id: 'subcategory', label: 'Subcategory', sortable: true },
     { id: 'vendorCatNo', label: 'Cat No', sortable: true },
-    { id: 'mrp', label: 'Price', sortable: true },
-    { id: 'addOns', label: 'Add-ons', sortable: false },
+    { id: 'model', label: 'Model', sortable: true },
+    { id: 'mrp', label: 'MRP', sortable: true },
     { id: 'attributes', label: 'Attributes', sortable: false },
     { id: 'action', label: 'Actions', sortable: false },
   ];
@@ -135,24 +140,15 @@ const ProductsGridPage: React.FC = () => {
       category: product.category ?? '-',
       subcategory: product.subcategory ?? '-',
       vendorCatNo: product.vendorCatNo ?? '-',
+      model: product.model ?? '-',
       mrp: `₹${Number(product.mrp).toLocaleString()}`,
-      addOns: (
-        <Badge variant={product.addOns ? 'accepted' : 'default'}>
-          {product.addOns ? 'Yes' : 'No'}
-        </Badge>
-      ),
-      attributes: <span className="line-clamp-2 text-sm">{product.attributes ?? '-'}</span>,
+      attributes: <AttributesDisplay attributes={product.attributes} compact maxBadges={2} />,
     },
     actions: [
-      {
-        type: 'edit',
-        onClick: () => handleEdit(product),
-      },
-      {
-        type: 'delete',
-        onClick: () => handleDelete(product.id),
-      },
+      { type: 'edit', onClick: () => handleEdit(product) },
+      { type: 'delete', onClick: () => handleDelete(product.id) },
     ],
+    onDoubleClick: () => handleRowDoubleClick(product),
   }));
 
   return (
@@ -160,21 +156,41 @@ const ProductsGridPage: React.FC = () => {
       {/* Search and Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-3 shrink-0">
         <div className="flex gap-3 items-center justify-between">
-          <span className="text-sm font-medium text-gray-700">Products</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700">Products</span>
+            {!isLoading && (
+              <span className="text-xs text-gray-400">
+                {products.length} of {allProducts.length}
+              </span>
+            )}
+          </div>
           <div className="flex gap-3 items-center">
-            <div className="w-72">
+            <div className="w-80">
               <Input
                 type="text"
-                placeholder="Search by vendor, category, or cat no..."
+                placeholder="Search vendor, category, subcategory, cat no, model..."
                 value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button 
-              onClick={() => {
-                setEditingProduct(null);
-                setShowModal(true);
-              }}
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                style={{
+                  fontSize: '13px',
+                  color: '#6b7280',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Clear
+              </button>
+            )}
+            <Button
+              onClick={handleCreate}
               className="whitespace-nowrap px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700"
             >
               + Add Product
@@ -188,7 +204,7 @@ const ProductsGridPage: React.FC = () => {
         <Grid
           columns={columns}
           rows={gridRows}
-          columnOrder={['vendor', 'category', 'subcategory', 'vendorCatNo', 'mrp', 'addOns', 'attributes', 'action']}
+          columnOrder={['vendor', 'category', 'subcategory', 'vendorCatNo', 'model', 'mrp', 'attributes', 'action']}
           isLoading={isLoading}
           sortColumn={sortColumn}
           sortDirection={sortDirection}
@@ -196,27 +212,6 @@ const ProductsGridPage: React.FC = () => {
           scrollHeight="100%"
         />
       </div>
-
-      {/* Product Form Modal */}
-      {showModal && (
-        <Modal
-          isOpen={showModal}
-          onClose={() => {
-            setShowModal(false);
-            setEditingProduct(null);
-          }}
-          title={editingProduct ? 'Edit Product' : 'Add Product'}
-        >
-          <ProductForm
-            initialData={editingProduct}
-            onSubmit={handleFormSubmit}
-            onCancel={() => {
-              setShowModal(false);
-              setEditingProduct(null);
-            }}
-          />
-        </Modal>
-      )}
     </div>
   );
 };
